@@ -5,7 +5,7 @@ export interface FrameInfo {
   description: string;
 }
 
-export const FRAMES: FrameInfo[] = [
+export const FRAMES = [
   {
     id: 'mountain',
     name: 'Mountain Adventure',
@@ -42,6 +42,6 @@ export const FRAMES: FrameInfo[] = [
     emoji: '🌙',
     description: 'Moon, stars & sleepy owl',
   },
-];
+] as const satisfies readonly FrameInfo[];
 
 export type FrameId = (typeof FRAMES)[number]['id'];

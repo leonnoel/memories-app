@@ -34,6 +34,7 @@ export default function ComposeScreen() {
   const [saving, setSaving] = useState(false);
   const [sharing, setSharing] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [savedMemoryId, setSavedMemoryId] = useState<string | null>(null);
   const [error, setError] = useState('');
 
   // Ref for the hidden full-resolution frame used for export
@@ -66,6 +67,7 @@ export default function ComposeScreen() {
         const dataUri = await toDataUrl(result.assets[0].uri);
         setPhotoUri(dataUri);
         setSaved(false);
+        setSavedMemoryId(null);
         setError('');
       }
     } catch (err) {
@@ -96,17 +98,24 @@ export default function ComposeScreen() {
   }, []);
 
   const saveToGallery = async () => {
+    // Reuse existing memory ID if already saved to avoid duplicates
+    if (savedMemoryId) {
+      return;
+    }
+    
     const thumbEl = getThumbnailElement();
     if (thumbEl) {
       const dataUrl = await captureViewAsDataUrl(thumbEl);
       if (dataUrl) {
+        const memoryId = Date.now().toString();
         await saveMemory({
-          id: Date.now().toString(),
+          id: memoryId,
           frameId: frame.id,
           date: new Date().toISOString(),
           ageLabel: ageText,
           thumbnail: dataUrl,
         });
+        setSavedMemoryId(memoryId);
       }
     }
   };
@@ -241,6 +250,7 @@ export default function ComposeScreen() {
                 onPress={() => {
                   setActiveFrameId(f.id);
                   setSaved(false);
+                  setSavedMemoryId(null);
                 }}
                 accessibilityLabel={`Switch to ${f.name} frame`}
               >
