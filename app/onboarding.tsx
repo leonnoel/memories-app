@@ -25,7 +25,8 @@ export default function OnboardingScreen() {
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
 
-  // Refs for auto-advancing between date fields
+  // Refs for auto-advancing between fields
+  const monthRef = useRef<TextInput>(null);
   const dayRef = useRef<TextInput>(null);
   const yearRef = useRef<TextInput>(null);
 
@@ -119,6 +120,7 @@ export default function OnboardingScreen() {
               label="What's your little one's name?"
               value={name}
               onChangeText={setName}
+              onSubmitEditing={() => monthRef.current?.focus()}
               placeholder="e.g. Emma"
               autoCapitalize="words"
               autoCorrect={false}
@@ -134,6 +136,7 @@ export default function OnboardingScreen() {
             <View style={styles.dateRow}>
               <View style={styles.dateField}>
                 <StyledInput
+                  ref={monthRef}
                   label="Month"
                   value={birthMonth}
                   onChangeText={handleMonthChange}
@@ -165,6 +168,7 @@ export default function OnboardingScreen() {
                   label="Year"
                   value={birthYear}
                   onChangeText={setBirthYear}
+                  onSubmitEditing={validateAndSave}
                   placeholder="YYYY"
                   keyboardType="number-pad"
                   maxLength={4}
