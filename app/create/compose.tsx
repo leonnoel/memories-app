@@ -5,7 +5,6 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  ActivityIndicator,
   Platform,
   useWindowDimensions,
 } from 'react-native';
@@ -34,7 +33,11 @@ export default function ComposeScreen() {
   const [sharing, setSharing] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState('');
-  const frameRef = useRef<View>(null);
+
+  // Ref for the hidden full-resolution frame used for export
+  const exportFrameRef = useRef<View>(null);
+  // Ref for the visible preview (used as fallback)
+  const previewFrameRef = useRef<View>(null);
 
   const frame = FRAMES.find((f) => f.id === frameId) || FRAMES[0];
   const contentWidth = Math.min(windowWidth - Spacing.lg * 2, MAX_CONTENT_WIDTH);
@@ -53,48 +56,67 @@ export default function ComposeScreen() {
         mediaTypes: ['images'],
         allowsEditing: true,
         aspect: [1, 1],
-        quality: 0.8,
+        quality: 0.9,
       });
 
       if (!result.canceled && result.assets[0]) {
         setPhotoUri(result.assets[0].uri);
         setSaved(false);
+        setError('');
       }
     } catch (err) {
       console.error('Image picker error:', err);
     }
   };
 
-  const getFrameElement = useCallback((): HTMLElement | null => {
-    if (Platform.OS === 'web' && frameRef.current) {
-      // On web, View refs expose the DOM node
-      return frameRef.current as unknown as HTMLElement;
+  const getExportElement = useCallback((): HTMLElement | null => {
+    if (Platform.OS === 'web') {
+      // Prefer the full-resolution hidden frame
+      if (exportFrameRef.current) {
+        return exportFrameRef.current as unknown as HTMLElement;
+      }
+      // Fallback to the preview
+      if (previewFrameRef.current) {
+        return previewFrameRef.current as unknown as HTMLElement;
+      }
     }
     return null;
   }, []);
+
+  // Get a thumbnail element (the visible preview) for gallery storage
+  const getThumbnailElement = useCallback((): HTMLElement | null => {
+    if (Platform.OS === 'web' && previewFrameRef.current) {
+      return previewFrameRef.current as unknown as HTMLElement;
+    }
+    return null;
+  }, []);
+
+  const saveToGallery = async () => {
+    const thumbEl = getThumbnailElement();
+    if (thumbEl) {
+      const dataUrl = await captureViewAsDataUrl(thumbEl);
+      if (dataUrl) {
+        await saveMemory({
+          id: Date.now().toString(),
+          frameId: frame.id,
+          date: new Date().toISOString(),
+          ageLabel: ageText,
+          thumbnail: dataUrl,
+        });
+      }
+    }
+  };
 
   const handleSave = async () => {
     setSaving(true);
     setError('');
     try {
-      const element = getFrameElement();
+      const element = getExportElement();
       const blob = await captureViewAsBlob(element);
       if (blob) {
         const filename = `little-moments-${childName.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}.png`;
         await downloadImage(blob, filename);
-
-        // Save thumbnail to memory gallery
-        const dataUrl = await captureViewAsDataUrl(element);
-        if (dataUrl) {
-          await saveMemory({
-            id: Date.now().toString(),
-            frameId: frame.id,
-            date: new Date().toISOString(),
-            ageLabel: ageText,
-            thumbnail: dataUrl,
-          });
-        }
-
+        await saveToGallery();
         setSaved(true);
       } else {
         setError('Could not capture the image. Please try again.');
@@ -111,24 +133,13 @@ export default function ComposeScreen() {
     setSharing(true);
     setError('');
     try {
-      const element = getFrameElement();
+      const element = getExportElement();
       const blob = await captureViewAsBlob(element);
       if (blob) {
         const filename = `little-moments-${childName.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}.png`;
         const shared = await shareImage(blob, filename);
-
         if (shared) {
-          // Save thumbnail to memory gallery
-          const dataUrl = await captureViewAsDataUrl(element);
-          if (dataUrl) {
-            await saveMemory({
-              id: Date.now().toString(),
-              frameId: frame.id,
-              date: new Date().toISOString(),
-              ageLabel: ageText,
-              thumbnail: dataUrl,
-            });
-          }
+          await saveToGallery();
           setSaved(true);
         }
       } else {
@@ -160,38 +171,65 @@ export default function ComposeScreen() {
           <View style={{ width: 70 }} />
         </View>
 
-        {/* Frame display */}
+        {/* Visible preview frame */}
+        <TouchableOpacity
+          activeOpacity={0.9}
+          onPress={pickImage}
+          accessibilityLabel={photoUri ? 'Change photo' : 'Add photo'}
+        >
+          <View
+            ref={previewFrameRef}
+            style={[
+              styles.frameContainer,
+              { width: frameDisplayWidth, height: frameDisplayHeight },
+            ]}
+            collapsable={false}
+          >
+            <FrameRenderer
+              frameId={frame.id as FrameId}
+              photoUri={photoUri}
+              childName={childName}
+              ageText={ageText}
+              width={frameDisplayWidth}
+              height={frameDisplayHeight}
+            />
+          </View>
+          {!photoUri && (
+            <View style={styles.tapOverlay}>
+              <Text style={styles.tapIcon}>📷</Text>
+              <Text style={styles.tapText}>Tap to add photo</Text>
+            </View>
+          )}
+        </TouchableOpacity>
+
+        {/* Hidden full-resolution frame for high-quality export */}
         <View
-          ref={frameRef}
-          style={[
-            styles.frameContainer,
-            { width: frameDisplayWidth, height: frameDisplayHeight },
-          ]}
+          ref={exportFrameRef}
+          style={styles.hiddenExport}
           collapsable={false}
+          pointerEvents="none"
         >
           <FrameRenderer
             frameId={frame.id as FrameId}
             photoUri={photoUri}
             childName={childName}
             ageText={ageText}
-            width={frameDisplayWidth}
-            height={frameDisplayHeight}
+            width={FrameDimensions.width}
+            height={FrameDimensions.height}
           />
         </View>
 
-        {/* Photo upload prompt */}
-        <TouchableOpacity
-          style={styles.photoButton}
-          onPress={pickImage}
-          activeOpacity={0.7}
-        >
-          <Text style={styles.photoButtonIcon}>
-            {photoUri ? '🔄' : '📷'}
-          </Text>
-          <Text style={styles.photoButtonText}>
-            {photoUri ? 'Change Photo' : 'Add Photo'}
-          </Text>
-        </TouchableOpacity>
+        {/* Photo upload button */}
+        {photoUri && (
+          <TouchableOpacity
+            style={styles.photoButton}
+            onPress={pickImage}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.photoButtonIcon}>🔄</Text>
+            <Text style={styles.photoButtonText}>Change Photo</Text>
+          </TouchableOpacity>
+        )}
 
         {/* Action buttons */}
         <View style={styles.actions}>
@@ -221,7 +259,7 @@ export default function ComposeScreen() {
 
         {!photoUri && (
           <Text style={styles.hint}>
-            Tap "Add Photo" to get started!
+            Tap the frame or the button above to add a photo
           </Text>
         )}
 
@@ -286,13 +324,45 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     ...Shadow.lg,
   },
+  tapOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.15)',
+    borderRadius: BorderRadius.lg,
+  },
+  tapIcon: {
+    fontSize: 48,
+    marginBottom: Spacing.sm,
+  },
+  tapText: {
+    fontFamily: FontFamily.bold,
+    fontSize: FontSize.lg,
+    color: Colors.textInverse,
+    textShadowColor: 'rgba(0,0,0,0.5)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 4,
+  },
+  // Hidden off-screen frame at full 1080x1350 for high-quality export
+  hiddenExport: {
+    position: 'absolute',
+    left: -9999,
+    top: 0,
+    width: FrameDimensions.width,
+    height: FrameDimensions.height,
+    opacity: 1, // must be visible for html-to-image to capture
+  },
   photoButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: Colors.surface,
     borderRadius: BorderRadius.lg,
-    paddingVertical: Spacing.md,
+    paddingVertical: Spacing.md - 4,
     paddingHorizontal: Spacing.lg,
     marginTop: Spacing.md,
     borderWidth: 2,
@@ -300,7 +370,7 @@ const styles = StyleSheet.create({
     borderStyle: 'dashed',
   },
   photoButtonIcon: {
-    fontSize: 24,
+    fontSize: 20,
     marginRight: Spacing.sm,
   },
   photoButtonText: {

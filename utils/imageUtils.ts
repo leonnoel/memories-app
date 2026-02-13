@@ -1,37 +1,47 @@
 import { Platform } from 'react-native';
 
+/**
+ * Capture a DOM element as a PNG Blob.
+ * pixelRatio defaults to 1 — the element should already be rendered at
+ * the desired output resolution (e.g. 1080×1350 for the hidden export frame).
+ */
 export async function captureViewAsBlob(
-  element: HTMLElement | null
+  element: HTMLElement | null,
+  pixelRatio: number = 1
 ): Promise<Blob | null> {
   if (!element) return null;
 
   if (Platform.OS === 'web') {
     const { toBlob } = await import('html-to-image');
-    // Capture at 2x for high quality
     const blob = await toBlob(element, {
-      pixelRatio: 2,
+      pixelRatio,
       quality: 1.0,
       cacheBust: true,
+      // Skip font embedding since Nunito is already loaded in the page
+      skipFonts: true,
     });
     return blob;
   }
 
-  // For native platforms, would use react-native-view-shot
-  // This is a web-first implementation
   return null;
 }
 
+/**
+ * Capture a DOM element as a PNG data URL (for thumbnails / gallery storage).
+ */
 export async function captureViewAsDataUrl(
-  element: HTMLElement | null
+  element: HTMLElement | null,
+  pixelRatio: number = 1
 ): Promise<string | null> {
   if (!element) return null;
 
   if (Platform.OS === 'web') {
     const { toPng } = await import('html-to-image');
     const dataUrl = await toPng(element, {
-      pixelRatio: 2,
-      quality: 1.0,
+      pixelRatio,
+      quality: 0.8,
       cacheBust: true,
+      skipFonts: true,
     });
     return dataUrl;
   }
@@ -39,6 +49,9 @@ export async function captureViewAsDataUrl(
   return null;
 }
 
+/**
+ * Trigger a download of a Blob as a file in the browser.
+ */
 export async function downloadImage(blob: Blob, filename: string): Promise<void> {
   if (Platform.OS === 'web') {
     const url = URL.createObjectURL(blob);
@@ -52,8 +65,13 @@ export async function downloadImage(blob: Blob, filename: string): Promise<void>
   }
 }
 
+/**
+ * Share an image via the Web Share API, with a download fallback.
+ * Returns true if the share/download succeeded.
+ */
 export async function shareImage(blob: Blob, filename: string): Promise<boolean> {
   if (Platform.OS === 'web') {
+    // Try the Web Share API first (works on mobile browsers)
     if (typeof navigator !== 'undefined' && navigator.share && navigator.canShare) {
       const file = new File([blob], filename, { type: 'image/png' });
       const shareData = {
@@ -68,14 +86,14 @@ export async function shareImage(blob: Blob, filename: string): Promise<boolean>
           return true;
         } catch (err: any) {
           if (err.name === 'AbortError') {
-            return false; // User cancelled
+            return false; // User cancelled — not an error
           }
-          throw err;
+          // Share failed, fall through to download
         }
       }
     }
 
-    // Fallback: just download
+    // Fallback: download the image directly
     await downloadImage(blob, filename);
     return true;
   }
