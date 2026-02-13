@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   Platform,
   useWindowDimensions,
+  FlatList,
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
@@ -15,7 +16,8 @@ import { FontFamily, FontSize } from '@/constants/typography';
 import { Spacing, BorderRadius, Shadow, FrameDimensions, MAX_CONTENT_WIDTH } from '@/constants/layout';
 import { Button } from '@/components/ui/Button';
 import { FrameRenderer } from '@/components/frames/FrameRenderer';
-import { FrameId, FRAMES } from '@/constants/frames';
+import { FramePreview } from '@/components/frames/FramePreview';
+import { FrameId, FrameInfo, FRAMES } from '@/constants/frames';
 import { useChildInfo } from '@/hooks/useChildInfo';
 import { useMemories } from '@/hooks/useMemories';
 import { calculateAge, formatAge } from '@/utils/age';
@@ -28,6 +30,7 @@ export default function ComposeScreen() {
   const { save: saveMemory } = useMemories();
   const { width: windowWidth } = useWindowDimensions();
 
+  const [activeFrameId, setActiveFrameId] = useState(frameId || FRAMES[0].id);
   const [photoUri, setPhotoUri] = useState<string | undefined>();
   const [saving, setSaving] = useState(false);
   const [sharing, setSharing] = useState(false);
@@ -39,7 +42,7 @@ export default function ComposeScreen() {
   // Ref for the visible preview (used as fallback)
   const previewFrameRef = useRef<View>(null);
 
-  const frame = FRAMES.find((f) => f.id === frameId) || FRAMES[0];
+  const frame = FRAMES.find((f) => f.id === activeFrameId) || FRAMES[0];
   const contentWidth = Math.min(windowWidth - Spacing.lg * 2, MAX_CONTENT_WIDTH);
   const frameDisplayWidth = contentWidth;
   const frameDisplayHeight = frameDisplayWidth * (FrameDimensions.height / FrameDimensions.width);
@@ -219,6 +222,44 @@ export default function ComposeScreen() {
           />
         </View>
 
+        {/* Frame switcher strip */}
+        <View style={styles.frameSwitcher}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.frameSwitcherContent}
+          >
+            {FRAMES.map((f) => (
+              <TouchableOpacity
+                key={f.id}
+                style={[
+                  styles.frameSwitcherItem,
+                  f.id === activeFrameId && styles.frameSwitcherItemActive,
+                ]}
+                activeOpacity={0.7}
+                onPress={() => {
+                  setActiveFrameId(f.id);
+                  setSaved(false);
+                }}
+                accessibilityLabel={`Switch to ${f.name} frame`}
+              >
+                <View style={styles.frameSwitcherPreview}>
+                  <FramePreview frameId={f.id} size={52} />
+                </View>
+                <Text
+                  style={[
+                    styles.frameSwitcherLabel,
+                    f.id === activeFrameId && styles.frameSwitcherLabelActive,
+                  ]}
+                  numberOfLines={1}
+                >
+                  {f.emoji}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </View>
+
         {/* Photo upload button */}
         {photoUri && (
           <TouchableOpacity
@@ -355,6 +396,38 @@ const styles = StyleSheet.create({
     width: FrameDimensions.width,
     height: FrameDimensions.height,
     opacity: 1, // must be visible for html-to-image to capture
+  },
+  frameSwitcher: {
+    marginTop: Spacing.md,
+  },
+  frameSwitcherContent: {
+    paddingHorizontal: Spacing.xs,
+    gap: Spacing.sm,
+  },
+  frameSwitcherItem: {
+    alignItems: 'center',
+    borderRadius: BorderRadius.md,
+    padding: Spacing.xs,
+    borderWidth: 2,
+    borderColor: 'transparent',
+  },
+  frameSwitcherItemActive: {
+    borderColor: Colors.primary,
+    backgroundColor: Colors.surface,
+  },
+  frameSwitcherPreview: {
+    width: 52,
+    height: 65,
+    borderRadius: 6,
+    overflow: 'hidden',
+  },
+  frameSwitcherLabel: {
+    fontSize: 16,
+    marginTop: 2,
+    textAlign: 'center',
+  },
+  frameSwitcherLabelActive: {
+    fontFamily: FontFamily.bold,
   },
   photoButton: {
     flexDirection: 'row',
