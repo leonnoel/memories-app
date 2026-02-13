@@ -217,12 +217,20 @@ export default function ComposeScreen() {
             <Text style={styles.successText}>
               Memory saved! 🎉
             </Text>
-            <Button
-              title="Create Another"
-              onPress={() => router.replace('/create')}
-              variant="ghost"
-              size="sm"
-            />
+            <View style={styles.successActions}>
+              <Button
+                title="Create Another"
+                onPress={() => router.replace('/create')}
+                variant="ghost"
+                size="sm"
+              />
+              <Button
+                title="Go Home"
+                onPress={() => router.replace('/home')}
+                variant="ghost"
+                size="sm"
+              />
+            </View>
           </View>
         )}
       </View>
@@ -313,5 +321,9 @@ const styles = StyleSheet.create({
     fontSize: FontSize.lg,
     color: Colors.success,
     marginBottom: Spacing.sm,
+  },
+  successActions: {
+    flexDirection: 'row',
+    gap: Spacing.md,
   },
 });

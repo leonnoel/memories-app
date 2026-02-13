@@ -6,17 +6,17 @@ import {
   ScrollView,
   Image,
   TouchableOpacity,
-  Dimensions,
 } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
+import Svg, { Circle, Ellipse, Path } from 'react-native-svg';
 import { Colors } from '@/constants/colors';
 import { FontFamily, FontSize } from '@/constants/typography';
 import { Spacing, BorderRadius, Shadow, MAX_CONTENT_WIDTH } from '@/constants/layout';
 import { Button } from '@/components/ui/Button';
+import { MilestoneReminder } from '@/components/MilestoneReminder';
 import { useChildInfo } from '@/hooks/useChildInfo';
 import { useMemories } from '@/hooks/useMemories';
 import { calculateAge, formatAge } from '@/utils/age';
-import Svg, { Circle, Path, Rect, G, Defs, RadialGradient, Stop } from 'react-native-svg';
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -44,12 +44,14 @@ export default function HomeScreen() {
       <View style={styles.container}>
         {/* Header */}
         <View style={styles.header}>
-          <View style={styles.headerLeft}>
+          <View>
             <Text style={styles.appName}>Little Moments</Text>
+            <Text style={styles.appTagline}>Growing memories 💙</Text>
           </View>
           <TouchableOpacity
             onPress={() => router.push('/settings')}
             style={styles.settingsButton}
+            accessibilityLabel="Settings"
           >
             <Text style={styles.settingsIcon}>⚙️</Text>
           </TouchableOpacity>
@@ -57,18 +59,53 @@ export default function HomeScreen() {
 
         {/* Age Card */}
         <View style={styles.ageCard}>
+          {/* Decorative clouds */}
+          <View style={styles.ageCardDecorTop}>
+            <Svg width={80} height={30} viewBox="0 0 80 30" style={{ position: 'absolute', top: 8, left: 20, opacity: 0.3 }}>
+              <Ellipse cx="30" cy="18" rx="25" ry="10" fill={Colors.primaryLight} />
+              <Ellipse cx="50" cy="15" rx="20" ry="9" fill={Colors.primaryLight} />
+            </Svg>
+            <Svg width={60} height={25} viewBox="0 0 60 25" style={{ position: 'absolute', top: 15, right: 25, opacity: 0.25 }}>
+              <Ellipse cx="25" cy="14" rx="20" ry="9" fill={Colors.primaryLight} />
+              <Ellipse cx="40" cy="12" rx="16" ry="7" fill={Colors.primaryLight} />
+            </Svg>
+          </View>
+
           <View style={styles.ageCardInner}>
-            <SunIcon />
+            {/* Sun */}
+            <Svg width={44} height={44} viewBox="0 0 44 44" style={{ marginBottom: Spacing.sm }}>
+              <Circle cx="22" cy="22" r="11" fill={Colors.accent} />
+              {[0, 45, 90, 135, 180, 225, 270, 315].map((angle, i) => {
+                const rad = (angle * Math.PI) / 180;
+                const x1 = 22 + Math.cos(rad) * 15;
+                const y1 = 22 + Math.sin(rad) * 15;
+                const x2 = 22 + Math.cos(rad) * 19;
+                const y2 = 22 + Math.sin(rad) * 19;
+                return (
+                  <Path
+                    key={i}
+                    d={`M${x1},${y1} L${x2},${y2}`}
+                    stroke={Colors.accent}
+                    strokeWidth="2.5"
+                    strokeLinecap="round"
+                  />
+                );
+              })}
+            </Svg>
+
             <Text style={styles.childName}>{childInfo.name}</Text>
             <Text style={styles.ageIs}>is</Text>
             <Text style={styles.ageText}>{ageText}</Text>
             <Text style={styles.ageOld}>old today!</Text>
           </View>
-          <View style={styles.ageCardDecor}>
-            <CloudSmall style={{ position: 'absolute', top: 12, left: 20 }} />
-            <CloudSmall style={{ position: 'absolute', top: 24, right: 30 }} />
-          </View>
         </View>
+
+        {/* Milestone Reminder */}
+        <MilestoneReminder
+          childName={childInfo.name}
+          age={age}
+          memories={memories}
+        />
 
         {/* CTA */}
         <Button
@@ -90,7 +127,9 @@ export default function HomeScreen() {
                     style={styles.memoryThumb}
                     resizeMode="cover"
                   />
-                  <Text style={styles.memoryAge}>{memory.ageLabel}</Text>
+                  <View style={styles.memoryOverlay}>
+                    <Text style={styles.memoryAge}>{memory.ageLabel}</Text>
+                  </View>
                 </View>
               ))}
             </View>
@@ -100,55 +139,28 @@ export default function HomeScreen() {
         {/* Empty state */}
         {memories.length === 0 && (
           <View style={styles.emptyState}>
-            <Text style={styles.emptyEmoji}>📸</Text>
+            <View style={styles.emptyIllustration}>
+              <Svg width={100} height={80} viewBox="0 0 100 80">
+                {/* Camera icon */}
+                <Path
+                  d="M15,25 L35,25 L40,18 L60,18 L65,25 L85,25 L85,65 L15,65 Z"
+                  fill={Colors.primaryLight}
+                  stroke={Colors.primary}
+                  strokeWidth="2"
+                />
+                <Circle cx="50" cy="44" r="14" fill="none" stroke={Colors.primary} strokeWidth="2" />
+                <Circle cx="50" cy="44" r="8" fill={Colors.primaryLight} />
+                <Circle cx="75" cy="32" r="3" fill={Colors.accent} />
+              </Svg>
+            </View>
             <Text style={styles.emptyTitle}>No memories yet</Text>
             <Text style={styles.emptyText}>
-              Create your first beautiful milestone photo!
+              Tap the button above to create your{'\n'}first beautiful milestone photo!
             </Text>
           </View>
         )}
       </View>
     </ScrollView>
-  );
-}
-
-// Small decorative cloud component
-function CloudSmall({ style }: { style?: any }) {
-  return (
-    <View style={style}>
-      <Svg width={48} height={24} viewBox="0 0 48 24">
-        <Circle cx="16" cy="16" r="8" fill={Colors.primaryLight} opacity={0.5} />
-        <Circle cx="28" cy="14" r="10" fill={Colors.primaryLight} opacity={0.5} />
-        <Circle cx="38" cy="16" r="7" fill={Colors.primaryLight} opacity={0.5} />
-      </Svg>
-    </View>
-  );
-}
-
-// Decorative sun icon
-function SunIcon() {
-  return (
-    <View style={{ marginBottom: Spacing.sm }}>
-      <Svg width={48} height={48} viewBox="0 0 48 48">
-        <Circle cx="24" cy="24" r="12" fill={Colors.accent} />
-        {[0, 45, 90, 135, 180, 225, 270, 315].map((angle, i) => {
-          const rad = (angle * Math.PI) / 180;
-          const x1 = 24 + Math.cos(rad) * 16;
-          const y1 = 24 + Math.sin(rad) * 16;
-          const x2 = 24 + Math.cos(rad) * 21;
-          const y2 = 24 + Math.sin(rad) * 21;
-          return (
-            <Path
-              key={i}
-              d={`M${x1},${y1} L${x2},${y2}`}
-              stroke={Colors.accent}
-              strokeWidth="3"
-              strokeLinecap="round"
-            />
-          );
-        })}
-      </Svg>
-    </View>
   );
 }
 
@@ -159,7 +171,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     flexGrow: 1,
-    paddingBottom: Spacing['2xl'],
+    paddingBottom: Spacing['3xl'],
   },
   container: {
     alignSelf: 'center',
@@ -171,35 +183,44 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     marginBottom: Spacing.lg,
   },
-  headerLeft: {},
   appName: {
     fontFamily: FontFamily.extraBold,
     fontSize: FontSize['2xl'],
     color: Colors.primary,
   },
+  appTagline: {
+    fontFamily: FontFamily.regular,
+    fontSize: FontSize.sm,
+    color: Colors.textLight,
+    marginTop: 2,
+  },
   settingsButton: {
     padding: Spacing.sm,
+    borderRadius: BorderRadius.full,
+    backgroundColor: Colors.surface,
+    ...Shadow.sm,
   },
   settingsIcon: {
-    fontSize: 24,
+    fontSize: 22,
   },
   ageCard: {
     backgroundColor: Colors.surface,
     borderRadius: BorderRadius.xl,
     overflow: 'hidden',
-    ...Shadow.lg,
+    marginBottom: Spacing.md,
+    ...Shadow.md,
+  },
+  ageCardDecorTop: {
+    height: 40,
+    position: 'relative',
   },
   ageCardInner: {
     alignItems: 'center',
-    paddingVertical: Spacing.xl,
+    paddingBottom: Spacing.xl,
     paddingHorizontal: Spacing.lg,
-  },
-  ageCardDecor: {
-    height: 40,
-    position: 'relative',
   },
   childName: {
     fontFamily: FontFamily.extraBold,
@@ -211,7 +232,7 @@ const styles = StyleSheet.create({
     fontFamily: FontFamily.regular,
     fontSize: FontSize.lg,
     color: Colors.textLight,
-    marginVertical: Spacing.xs,
+    marginVertical: 2,
   },
   ageText: {
     fontFamily: FontFamily.bold,
@@ -223,13 +244,13 @@ const styles = StyleSheet.create({
     fontFamily: FontFamily.regular,
     fontSize: FontSize.lg,
     color: Colors.textLight,
-    marginTop: Spacing.xs,
+    marginTop: 2,
   },
   ctaButton: {
-    marginTop: Spacing.lg,
+    marginBottom: Spacing.lg,
   },
   gallerySection: {
-    marginTop: Spacing.xl,
+    marginTop: Spacing.sm,
   },
   galleryTitle: {
     fontFamily: FontFamily.bold,
@@ -243,7 +264,7 @@ const styles = StyleSheet.create({
     gap: Spacing.sm,
   },
   memoryCard: {
-    width: '48%',
+    width: '48.5%',
     aspectRatio: 4 / 5,
     borderRadius: BorderRadius.md,
     overflow: 'hidden',
@@ -254,26 +275,28 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
   },
-  memoryAge: {
+  memoryOverlay: {
     position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
     backgroundColor: 'rgba(44, 62, 80, 0.6)',
+    paddingVertical: Spacing.xs,
+  },
+  memoryAge: {
     color: Colors.textInverse,
     fontFamily: FontFamily.semiBold,
     fontSize: FontSize.sm,
-    paddingVertical: Spacing.xs,
     textAlign: 'center',
   },
   emptyState: {
     alignItems: 'center',
-    marginTop: Spacing['3xl'],
+    marginTop: Spacing.xl,
     padding: Spacing.xl,
   },
-  emptyEmoji: {
-    fontSize: 64,
+  emptyIllustration: {
     marginBottom: Spacing.md,
+    opacity: 0.8,
   },
   emptyTitle: {
     fontFamily: FontFamily.bold,
@@ -286,5 +309,6 @@ const styles = StyleSheet.create({
     fontSize: FontSize.md,
     color: Colors.textLight,
     textAlign: 'center',
+    lineHeight: 22,
   },
 });
