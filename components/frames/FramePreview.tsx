@@ -7,17 +7,24 @@ import { FrameDimensions } from '@/constants/layout';
 interface FramePreviewProps {
   frameId: FrameId;
   size?: number;
+  childName?: string;
+  ageText?: string;
 }
 
-export function FramePreview({ frameId, size = 160 }: FramePreviewProps) {
+export function FramePreview({
+  frameId,
+  size = 160,
+  childName = 'Baby',
+  ageText = '1 year',
+}: FramePreviewProps) {
   const previewHeight = size * (FrameDimensions.height / FrameDimensions.width);
 
   return (
     <View style={[styles.container, { width: size, height: previewHeight }]}>
       <FrameRenderer
         frameId={frameId}
-        childName="Baby"
-        ageText="1 year"
+        childName={childName}
+        ageText={ageText}
         width={size}
         height={previewHeight}
       />

@@ -14,12 +14,21 @@ import { Spacing, BorderRadius, Shadow, MAX_CONTENT_WIDTH } from '@/constants/la
 import { Button } from '@/components/ui/Button';
 import { FRAMES } from '@/constants/frames';
 import { FramePreview } from '@/components/frames/FramePreview';
+import { useChildInfo } from '@/hooks/useChildInfo';
+import { calculateAge, formatAge } from '@/utils/age';
 
 export default function FrameSelectionScreen() {
   const router = useRouter();
+  const { childInfo } = useChildInfo();
   const { width } = useWindowDimensions();
   const contentWidth = Math.min(width - Spacing.lg * 2, MAX_CONTENT_WIDTH);
   const cardWidth = (contentWidth - Spacing.md) / 2;
+
+  const childName = childInfo?.name || 'Baby';
+  const age = childInfo?.birthday
+    ? calculateAge(new Date(childInfo.birthday))
+    : { years: 0, months: 0, totalMonths: 0 };
+  const ageText = formatAge(age);
 
   return (
     <ScrollView
@@ -56,7 +65,12 @@ export default function FrameSelectionScreen() {
               }
             >
               <View style={styles.framePreviewContainer}>
-                <FramePreview frameId={frame.id} size={cardWidth - Spacing.md * 2} />
+                <FramePreview
+                  frameId={frame.id}
+                  size={cardWidth - Spacing.md * 2}
+                  childName={childName}
+                  ageText={ageText}
+                />
               </View>
               <Text style={styles.frameName}>
                 {frame.emoji} {frame.name}
