@@ -24,13 +24,14 @@ export function MilestoneReminder({ childName, age, memories }: MilestoneReminde
   if (hasThisMonthMemory) return null;
 
   const ageText = formatAge(age);
+  const isNewborn = ageText === 'Newborn';
 
   return (
     <View style={styles.container}>
       <Text style={styles.icon}>📸</Text>
       <View style={styles.textContainer}>
         <Text style={styles.title}>
-          {childName} is {ageText} old!
+          {isNewborn ? `${childName} is a Newborn!` : `${childName} is ${ageText} old!`}
         </Text>
         <Text style={styles.subtitle}>
           Time to capture this month's special moment

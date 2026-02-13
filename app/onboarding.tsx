@@ -60,6 +60,13 @@ export default function OnboardingScreen() {
     }
 
     const birthday = new Date(year, month - 1, day);
+    
+    // Verify the date didn't overflow (e.g., Feb 30 -> March 2)
+    if (birthday.getMonth() !== month - 1 || birthday.getDate() !== day) {
+      setError('Please enter a valid date for the selected month');
+      return;
+    }
+    
     if (birthday > now) {
       setError("Birthday can't be in the future");
       return;

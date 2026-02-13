@@ -47,10 +47,35 @@ export default function SettingsScreen() {
     const month = parseInt(birthMonth, 10);
     const year = parseInt(birthYear, 10);
     const day = parseInt(birthDay, 10);
+    const now = new Date();
 
-    if (!month || !year || !day) return;
+    if (!month || month < 1 || month > 12) {
+      setMessage('Invalid month (1-12)');
+      return;
+    }
+
+    if (!year || year < 2000 || year > now.getFullYear()) {
+      setMessage(`Invalid year (2000-${now.getFullYear()})`);
+      return;
+    }
+
+    if (!day || day < 1 || day > 31) {
+      setMessage('Invalid day (1-31)');
+      return;
+    }
 
     const birthday = new Date(year, month - 1, day);
+    
+    // Verify the date didn't overflow (e.g., Feb 30 -> March 2)
+    if (birthday.getMonth() !== month - 1 || birthday.getDate() !== day) {
+      setMessage('Invalid date for selected month');
+      return;
+    }
+    
+    if (birthday > now) {
+      setMessage("Birthday can't be in the future");
+      return;
+    }
 
     setSaving(true);
     try {
