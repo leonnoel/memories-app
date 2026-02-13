@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useState } from 'react';
 import {
   View,
   Text,
@@ -14,14 +14,17 @@ import { FontFamily, FontSize } from '@/constants/typography';
 import { Spacing, BorderRadius, Shadow, MAX_CONTENT_WIDTH } from '@/constants/layout';
 import { Button } from '@/components/ui/Button';
 import { MilestoneReminder } from '@/components/MilestoneReminder';
+import { MemoryViewer } from '@/components/MemoryViewer';
 import { useChildInfo } from '@/hooks/useChildInfo';
 import { useMemories } from '@/hooks/useMemories';
 import { calculateAge, formatAge } from '@/utils/age';
+import { MemoryEntry } from '@/utils/storage';
 
 export default function HomeScreen() {
   const router = useRouter();
   const { childInfo, refresh: refreshChild } = useChildInfo();
-  const { memories, refresh: refreshMemories } = useMemories();
+  const { memories, refresh: refreshMemories, remove: removeMemory } = useMemories();
+  const [selectedMemory, setSelectedMemory] = useState<MemoryEntry | null>(null);
 
   useFocusEffect(
     useCallback(() => {
@@ -121,7 +124,13 @@ export default function HomeScreen() {
             <Text style={styles.galleryTitle}>Your Memories</Text>
             <View style={styles.galleryGrid}>
               {memories.map((memory) => (
-                <View key={memory.id} style={styles.memoryCard}>
+                <TouchableOpacity
+                  key={memory.id}
+                  style={styles.memoryCard}
+                  activeOpacity={0.8}
+                  onPress={() => setSelectedMemory(memory)}
+                  accessibilityLabel={`Memory: ${memory.ageLabel}`}
+                >
                   <Image
                     source={{ uri: memory.thumbnail }}
                     style={styles.memoryThumb}
@@ -130,7 +139,7 @@ export default function HomeScreen() {
                   <View style={styles.memoryOverlay}>
                     <Text style={styles.memoryAge}>{memory.ageLabel}</Text>
                   </View>
-                </View>
+                </TouchableOpacity>
               ))}
             </View>
           </View>
@@ -160,6 +169,17 @@ export default function HomeScreen() {
           </View>
         )}
       </View>
+
+      {/* Memory viewer modal */}
+      <MemoryViewer
+        memory={selectedMemory}
+        visible={selectedMemory !== null}
+        onClose={() => setSelectedMemory(null)}
+        onDelete={(id) => {
+          removeMemory(id);
+          setSelectedMemory(null);
+        }}
+      />
     </ScrollView>
   );
 }
