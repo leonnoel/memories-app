@@ -138,6 +138,9 @@ export default function HomeScreen() {
                   />
                   <View style={styles.memoryOverlay}>
                     <Text style={styles.memoryAge}>{memory.ageLabel}</Text>
+                    <Text style={styles.memoryDate}>
+                      {new Date(memory.date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
+                    </Text>
                   </View>
                 </TouchableOpacity>
               ))}
@@ -300,7 +303,7 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: 'rgba(44, 62, 80, 0.6)',
+    backgroundColor: 'rgba(44, 62, 80, 0.65)',
     paddingVertical: Spacing.xs,
   },
   memoryAge: {
@@ -308,6 +311,13 @@ const styles = StyleSheet.create({
     fontFamily: FontFamily.semiBold,
     fontSize: FontSize.sm,
     textAlign: 'center',
+  },
+  memoryDate: {
+    color: Colors.textInverse,
+    fontFamily: FontFamily.regular,
+    fontSize: FontSize.xs,
+    textAlign: 'center',
+    opacity: 0.8,
   },
   emptyState: {
     alignItems: 'center',
