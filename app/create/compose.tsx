@@ -33,6 +33,7 @@ export default function ComposeScreen() {
   const [saving, setSaving] = useState(false);
   const [sharing, setSharing] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [error, setError] = useState('');
   const frameRef = useRef<View>(null);
 
   const frame = FRAMES.find((f) => f.id === frameId) || FRAMES[0];
@@ -74,11 +75,12 @@ export default function ComposeScreen() {
 
   const handleSave = async () => {
     setSaving(true);
+    setError('');
     try {
       const element = getFrameElement();
       const blob = await captureViewAsBlob(element);
       if (blob) {
-        const filename = `little-moments-${childName.toLowerCase()}-${Date.now()}.png`;
+        const filename = `little-moments-${childName.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}.png`;
         await downloadImage(blob, filename);
 
         // Save thumbnail to memory gallery
@@ -94,9 +96,12 @@ export default function ComposeScreen() {
         }
 
         setSaved(true);
+      } else {
+        setError('Could not capture the image. Please try again.');
       }
     } catch (err) {
       console.error('Save error:', err);
+      setError('Something went wrong while saving. Please try again.');
     } finally {
       setSaving(false);
     }
@@ -104,11 +109,12 @@ export default function ComposeScreen() {
 
   const handleShare = async () => {
     setSharing(true);
+    setError('');
     try {
       const element = getFrameElement();
       const blob = await captureViewAsBlob(element);
       if (blob) {
-        const filename = `little-moments-${childName.toLowerCase()}-${Date.now()}.png`;
+        const filename = `little-moments-${childName.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}.png`;
         const shared = await shareImage(blob, filename);
 
         if (shared) {
@@ -125,9 +131,12 @@ export default function ComposeScreen() {
           }
           setSaved(true);
         }
+      } else {
+        setError('Could not capture the image. Please try again.');
       }
     } catch (err) {
       console.error('Share error:', err);
+      setError('Something went wrong while sharing. Please try again.');
     } finally {
       setSharing(false);
     }
@@ -205,6 +214,10 @@ export default function ComposeScreen() {
             style={styles.actionButton}
           />
         </View>
+
+        {error ? (
+          <Text style={styles.errorText}>{error}</Text>
+        ) : null}
 
         {!photoUri && (
           <Text style={styles.hint}>
@@ -301,6 +314,13 @@ const styles = StyleSheet.create({
   },
   actionButton: {
     width: '100%',
+  },
+  errorText: {
+    fontFamily: FontFamily.regular,
+    fontSize: FontSize.sm,
+    color: Colors.danger,
+    textAlign: 'center',
+    marginTop: Spacing.md,
   },
   hint: {
     fontFamily: FontFamily.regular,
