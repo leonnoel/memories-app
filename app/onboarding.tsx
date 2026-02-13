@@ -238,7 +238,7 @@ const styles = StyleSheet.create({
     borderColor: Colors.border,
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.md - 2,
-    outlineStyle: 'none' as any,
+    ...(Platform.OS === 'web' ? { outlineStyle: 'none' as any } : {}),
   },
   dateRow: {
     flexDirection: 'row',
@@ -264,7 +264,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.md - 2,
     textAlign: 'center',
-    outlineStyle: 'none' as any,
+    ...(Platform.OS === 'web' ? { outlineStyle: 'none' as any } : {}),
   },
   error: {
     fontFamily: FontFamily.regular,
