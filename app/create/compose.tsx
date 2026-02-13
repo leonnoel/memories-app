@@ -7,7 +7,6 @@ import {
   TouchableOpacity,
   Platform,
   useWindowDimensions,
-  FlatList,
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
@@ -17,7 +16,7 @@ import { Spacing, BorderRadius, Shadow, FrameDimensions, MAX_CONTENT_WIDTH } fro
 import { Button } from '@/components/ui/Button';
 import { FrameRenderer } from '@/components/frames/FrameRenderer';
 import { FramePreview } from '@/components/frames/FramePreview';
-import { FrameId, FrameInfo, FRAMES } from '@/constants/frames';
+import { FrameId, FRAMES } from '@/constants/frames';
 import { useChildInfo } from '@/hooks/useChildInfo';
 import { useMemories } from '@/hooks/useMemories';
 import { calculateAge, formatAge } from '@/utils/age';
@@ -246,7 +245,7 @@ export default function ComposeScreen() {
                 accessibilityLabel={`Switch to ${f.name} frame`}
               >
                 <View style={styles.frameSwitcherPreview}>
-                  <FramePreview frameId={f.id} size={52} />
+                  <FramePreview frameId={f.id} size={52} childName={childName} ageText={ageText} />
                 </View>
                 <Text
                   style={[
