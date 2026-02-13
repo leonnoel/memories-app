@@ -1,6 +1,6 @@
 import React from 'react';
 import {
-  TouchableOpacity,
+  Pressable,
   Text,
   StyleSheet,
   ActivityIndicator,
@@ -35,15 +35,18 @@ export function Button({
   const isDisabled = disabled || loading;
 
   return (
-    <TouchableOpacity
+    <Pressable
       onPress={onPress}
       disabled={isDisabled}
-      activeOpacity={0.7}
-      style={[
+      role="button"
+      aria-label={title}
+      tabIndex={isDisabled ? -1 : 0}
+      style={({ pressed }) => [
         styles.base,
         styles[`${variant}Container` as keyof typeof styles] as ViewStyle,
         styles[`${size}Container` as keyof typeof styles] as ViewStyle,
         isDisabled && styles.disabled,
+        pressed && !isDisabled && styles.pressed,
         style,
       ]}
     >
@@ -67,7 +70,7 @@ export function Button({
           </Text>
         </>
       )}
-    </TouchableOpacity>
+    </Pressable>
   );
 }
 
@@ -77,9 +80,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: BorderRadius.lg,
+    cursor: 'pointer' as any,
   },
   disabled: {
     opacity: 0.5,
+    cursor: 'default' as any,
+  },
+  pressed: {
+    opacity: 0.8,
+    transform: [{ scale: 0.98 }],
   },
   text: {
     fontFamily: FontFamily.bold,
