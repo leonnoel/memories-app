@@ -1,6 +1,31 @@
 import { Platform } from 'react-native';
 
 /**
+ * Convert a blob:// or http:// URL to a base64 data URL.
+ * This is critical for reliable image export — html-to-image cannot
+ * always inline blob URLs inside SVG <image> elements.
+ */
+export async function toDataUrl(uri: string): Promise<string> {
+  if (Platform.OS !== 'web') return uri;
+  // Already a data URL
+  if (uri.startsWith('data:')) return uri;
+
+  try {
+    const response = await fetch(uri);
+    const blob = await response.blob();
+    return new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+  } catch {
+    // If conversion fails, return the original URI as fallback
+    return uri;
+  }
+}
+
+/**
  * Capture a DOM element as a PNG Blob.
  * pixelRatio defaults to 1 — the element should already be rendered at
  * the desired output resolution (e.g. 1080×1350 for the hidden export frame).

@@ -21,7 +21,7 @@ import { FrameId, FrameInfo, FRAMES } from '@/constants/frames';
 import { useChildInfo } from '@/hooks/useChildInfo';
 import { useMemories } from '@/hooks/useMemories';
 import { calculateAge, formatAge } from '@/utils/age';
-import { captureViewAsBlob, captureViewAsDataUrl, downloadImage, shareImage } from '@/utils/imageUtils';
+import { captureViewAsBlob, captureViewAsDataUrl, downloadImage, shareImage, toDataUrl } from '@/utils/imageUtils';
 
 export default function ComposeScreen() {
   const router = useRouter();
@@ -63,7 +63,9 @@ export default function ComposeScreen() {
       });
 
       if (!result.canceled && result.assets[0]) {
-        setPhotoUri(result.assets[0].uri);
+        // Convert blob URL to data URL for reliable SVG rendering and export
+        const dataUri = await toDataUrl(result.assets[0].uri);
+        setPhotoUri(dataUri);
         setSaved(false);
         setError('');
       }
