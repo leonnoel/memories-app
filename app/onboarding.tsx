@@ -116,8 +116,10 @@ export default function OnboardingScreen() {
 
           {/* Form */}
           <View style={styles.form}>
+            <Text style={styles.formQuestion}>
+              What's your little one's name?
+            </Text>
             <StyledInput
-              label="What's your little one's name?"
               value={name}
               onChangeText={setName}
               onSubmitEditing={() => monthRef.current?.focus()}
@@ -129,7 +131,7 @@ export default function OnboardingScreen() {
               error={!!error && !name.trim()}
             />
 
-            <Text style={[styles.dateHeading, { marginTop: Spacing.lg }]}>
+            <Text style={[styles.formQuestion, { marginTop: Spacing.lg }]}>
               When were they born?
             </Text>
 
@@ -242,7 +244,7 @@ const styles = StyleSheet.create({
     padding: Spacing.lg,
     ...Shadow.md,
   },
-  dateHeading: {
+  formQuestion: {
     fontFamily: FontFamily.semiBold,
     fontSize: FontSize.md,
     color: Colors.text,
