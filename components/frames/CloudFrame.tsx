@@ -144,12 +144,18 @@ export function CloudFrame({
       )}
       <Circle cx={CX} cy={CY} r={CR} fill="none" stroke={c.cloud} strokeWidth="8" />
 
-      {/* Name */}
+      {/* Name (stroke for readability, then fill) */}
+      <SvgText x={CX} y={CY - CR - 50} textAnchor="middle" fontFamily="Nunito_700Bold, Nunito, sans-serif" fontSize="72" fontWeight="bold" fill="none" stroke={c.skyTop} strokeWidth="8" opacity={0.5}>
+        {childName}
+      </SvgText>
       <SvgText x={CX} y={CY - CR - 50} textAnchor="middle" fontFamily="Nunito_700Bold, Nunito, sans-serif" fontSize="72" fontWeight="bold" fill={Colors.surface}>
         {childName}
       </SvgText>
 
-      {/* Age */}
+      {/* Age (stroke for readability, then fill) */}
+      <SvgText x={CX} y={CY + CR + 80} textAnchor="middle" fontFamily="Nunito_600SemiBold, Nunito, sans-serif" fontSize="56" fontWeight="600" fill="none" stroke={c.skyTop} strokeWidth="6" opacity={0.5}>
+        {ageText}
+      </SvgText>
       <SvgText x={CX} y={CY + CR + 80} textAnchor="middle" fontFamily="Nunito_600SemiBold, Nunito, sans-serif" fontSize="56" fontWeight="600" fill={Colors.surface}>
         {ageText}
       </SvgText>

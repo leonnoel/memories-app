@@ -133,29 +133,19 @@ export function MountainFrame({
       {/* Photo circle outline */}
       <Circle cx={CX} cy={CY} r={CR} fill="none" stroke={c.cloud} strokeWidth="6" />
 
-      {/* Name text */}
-      <SvgText
-        x={CX}
-        y={CY - CR - 50}
-        textAnchor="middle"
-        fontFamily="Nunito_700Bold, Nunito, sans-serif"
-        fontSize="72"
-        fontWeight="bold"
-        fill={Colors.surface}
-      >
+      {/* Name text (stroke for contrast, then fill) */}
+      <SvgText x={CX} y={CY - CR - 50} textAnchor="middle" fontFamily="Nunito_700Bold, Nunito, sans-serif" fontSize="72" fontWeight="bold" fill="none" stroke={c.skyDark} strokeWidth="8" opacity={0.4}>
+        {childName}
+      </SvgText>
+      <SvgText x={CX} y={CY - CR - 50} textAnchor="middle" fontFamily="Nunito_700Bold, Nunito, sans-serif" fontSize="72" fontWeight="bold" fill={Colors.surface}>
         {childName}
       </SvgText>
 
-      {/* Age text */}
-      <SvgText
-        x={CX}
-        y={CY + CR + 80}
-        textAnchor="middle"
-        fontFamily="Nunito_600SemiBold, Nunito, sans-serif"
-        fontSize="56"
-        fontWeight="600"
-        fill={Colors.surface}
-      >
+      {/* Age text (stroke for contrast, then fill) */}
+      <SvgText x={CX} y={CY + CR + 80} textAnchor="middle" fontFamily="Nunito_600SemiBold, Nunito, sans-serif" fontSize="56" fontWeight="600" fill="none" stroke={c.skyDark} strokeWidth="6" opacity={0.4}>
+        {ageText}
+      </SvgText>
+      <SvgText x={CX} y={CY + CR + 80} textAnchor="middle" fontFamily="Nunito_600SemiBold, Nunito, sans-serif" fontSize="56" fontWeight="600" fill={Colors.surface}>
         {ageText}
       </SvgText>
 
