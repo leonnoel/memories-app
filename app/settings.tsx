@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -13,6 +13,7 @@ import { Colors } from '@/constants/colors';
 import { FontFamily, FontSize } from '@/constants/typography';
 import { Spacing, BorderRadius, MAX_CONTENT_WIDTH } from '@/constants/layout';
 import { Button } from '@/components/ui/Button';
+import { StyledInput } from '@/components/ui/StyledInput';
 import { useChildInfo } from '@/hooks/useChildInfo';
 import { clearAllData, saveChildInfo } from '@/utils/storage';
 
@@ -25,6 +26,9 @@ export default function SettingsScreen() {
   const [birthYear, setBirthYear] = useState('');
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
+
+  const dayRef = useRef<TextInput>(null);
+  const yearRef = useRef<TextInput>(null);
 
   useEffect(() => {
     if (childInfo) {
@@ -66,7 +70,11 @@ export default function SettingsScreen() {
 
   const handleClearData = () => {
     if (Platform.OS === 'web') {
-      if (window.confirm('This will delete all your data including saved memories. Are you sure?')) {
+      if (
+        window.confirm(
+          'This will delete all your data including saved memories. Are you sure?'
+        )
+      ) {
         clearAllData().then(() => router.replace('/onboarding'));
       }
     } else {
@@ -78,11 +86,22 @@ export default function SettingsScreen() {
           {
             text: 'Delete Everything',
             style: 'destructive',
-            onPress: () => clearAllData().then(() => router.replace('/onboarding')),
+            onPress: () =>
+              clearAllData().then(() => router.replace('/onboarding')),
           },
         ]
       );
     }
+  };
+
+  const handleMonthChange = (val: string) => {
+    setBirthMonth(val);
+    if (val.length === 2) dayRef.current?.focus();
+  };
+
+  const handleDayChange = (val: string) => {
+    setBirthDay(val);
+    if (val.length === 2) yearRef.current?.focus();
   };
 
   return (
@@ -103,52 +122,51 @@ export default function SettingsScreen() {
         </View>
 
         <View style={styles.form}>
-          <Text style={styles.label}>Child's Name</Text>
-          <TextInput
-            style={styles.input}
+          <StyledInput
+            label="Child's Name"
             value={name}
             onChangeText={setName}
             placeholder="Name"
-            placeholderTextColor={Colors.textLight}
             maxLength={30}
           />
 
-          <Text style={[styles.label, { marginTop: Spacing.lg }]}>Birthday</Text>
+          <Text style={[styles.dateHeading, { marginTop: Spacing.lg }]}>
+            Birthday
+          </Text>
           <View style={styles.dateRow}>
             <View style={styles.dateField}>
-              <Text style={styles.dateLabel}>Month</Text>
-              <TextInput
-                style={styles.dateInput}
+              <StyledInput
+                label="Month"
                 value={birthMonth}
-                onChangeText={setBirthMonth}
+                onChangeText={handleMonthChange}
                 placeholder="MM"
-                placeholderTextColor={Colors.textLight}
                 keyboardType="number-pad"
                 maxLength={2}
+                style={styles.dateInput}
               />
             </View>
             <View style={styles.dateField}>
-              <Text style={styles.dateLabel}>Day</Text>
-              <TextInput
-                style={styles.dateInput}
+              <StyledInput
+                ref={dayRef}
+                label="Day"
                 value={birthDay}
-                onChangeText={setBirthDay}
+                onChangeText={handleDayChange}
                 placeholder="DD"
-                placeholderTextColor={Colors.textLight}
                 keyboardType="number-pad"
                 maxLength={2}
+                style={styles.dateInput}
               />
             </View>
             <View style={[styles.dateField, { flex: 1.5 }]}>
-              <Text style={styles.dateLabel}>Year</Text>
-              <TextInput
-                style={styles.dateInput}
+              <StyledInput
+                ref={yearRef}
+                label="Year"
                 value={birthYear}
                 onChangeText={setBirthYear}
                 placeholder="YYYY"
-                placeholderTextColor={Colors.textLight}
                 keyboardType="number-pad"
                 maxLength={4}
+                style={styles.dateInput}
               />
             </View>
           </View>
@@ -161,7 +179,14 @@ export default function SettingsScreen() {
           />
 
           {message ? (
-            <Text style={styles.message}>{message}</Text>
+            <Text
+              style={[
+                styles.message,
+                message === 'Error saving' && { color: Colors.danger },
+              ]}
+            >
+              {message}
+            </Text>
           ) : null}
         </View>
 
@@ -212,22 +237,11 @@ const styles = StyleSheet.create({
     shadowRadius: 12,
     elevation: 3,
   },
-  label: {
+  dateHeading: {
     fontFamily: FontFamily.semiBold,
     fontSize: FontSize.md,
     color: Colors.text,
     marginBottom: Spacing.sm,
-  },
-  input: {
-    fontFamily: FontFamily.regular,
-    fontSize: FontSize.lg,
-    color: Colors.text,
-    backgroundColor: Colors.background,
-    borderRadius: BorderRadius.md,
-    borderWidth: 1.5,
-    borderColor: Colors.border,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.md - 2,
   },
   dateRow: {
     flexDirection: 'row',
@@ -236,22 +250,7 @@ const styles = StyleSheet.create({
   dateField: {
     flex: 1,
   },
-  dateLabel: {
-    fontFamily: FontFamily.regular,
-    fontSize: FontSize.sm,
-    color: Colors.textLight,
-    marginBottom: Spacing.xs,
-  },
   dateInput: {
-    fontFamily: FontFamily.regular,
-    fontSize: FontSize.lg,
-    color: Colors.text,
-    backgroundColor: Colors.background,
-    borderRadius: BorderRadius.md,
-    borderWidth: 1.5,
-    borderColor: Colors.border,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.md - 2,
     textAlign: 'center',
   },
   message: {

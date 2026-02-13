@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -13,6 +13,7 @@ import { Colors } from '@/constants/colors';
 import { FontFamily, FontSize } from '@/constants/typography';
 import { Spacing, BorderRadius, MAX_CONTENT_WIDTH } from '@/constants/layout';
 import { Button } from '@/components/ui/Button';
+import { StyledInput } from '@/components/ui/StyledInput';
 import { saveChildInfo } from '@/utils/storage';
 
 export default function OnboardingScreen() {
@@ -24,12 +25,16 @@ export default function OnboardingScreen() {
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
 
+  // Refs for auto-advancing between date fields
+  const dayRef = useRef<TextInput>(null);
+  const yearRef = useRef<TextInput>(null);
+
   const validateAndSave = async () => {
     setError('');
 
     const trimmedName = name.trim();
     if (!trimmedName) {
-      setError('Please enter your little one\'s name');
+      setError("Please enter your little one's name");
       return;
     }
 
@@ -55,7 +60,7 @@ export default function OnboardingScreen() {
 
     const birthday = new Date(year, month - 1, day);
     if (birthday > now) {
-      setError('Birthday can\'t be in the future');
+      setError("Birthday can't be in the future");
       return;
     }
 
@@ -70,6 +75,22 @@ export default function OnboardingScreen() {
       setError('Something went wrong. Please try again.');
     } finally {
       setSaving(false);
+    }
+  };
+
+  // Auto-advance: when month reaches 2 digits, jump to day
+  const handleMonthChange = (val: string) => {
+    setBirthMonth(val);
+    if (val.length === 2) {
+      dayRef.current?.focus();
+    }
+  };
+
+  // Auto-advance: when day reaches 2 digits, jump to year
+  const handleDayChange = (val: string) => {
+    setBirthDay(val);
+    if (val.length === 2) {
+      yearRef.current?.focus();
     }
   };
 
@@ -94,66 +115,66 @@ export default function OnboardingScreen() {
 
           {/* Form */}
           <View style={styles.form}>
-            <Text style={styles.label}>What's your little one's name?</Text>
-            <TextInput
-              style={styles.input}
+            <StyledInput
+              label="What's your little one's name?"
               value={name}
               onChangeText={setName}
               placeholder="e.g. Emma"
-              placeholderTextColor={Colors.textLight}
               autoCapitalize="words"
               autoCorrect={false}
               maxLength={30}
+              returnKeyType="next"
+              error={!!error && !name.trim()}
             />
 
-            <Text style={[styles.label, { marginTop: Spacing.lg }]}>
+            <Text style={[styles.dateHeading, { marginTop: Spacing.lg }]}>
               When were they born?
             </Text>
 
             <View style={styles.dateRow}>
               <View style={styles.dateField}>
-                <Text style={styles.dateLabel}>Month</Text>
-                <TextInput
-                  style={styles.dateInput}
+                <StyledInput
+                  label="Month"
                   value={birthMonth}
-                  onChangeText={setBirthMonth}
+                  onChangeText={handleMonthChange}
                   placeholder="MM"
-                  placeholderTextColor={Colors.textLight}
                   keyboardType="number-pad"
                   maxLength={2}
+                  returnKeyType="next"
+                  style={styles.dateInput}
                 />
               </View>
 
               <View style={styles.dateField}>
-                <Text style={styles.dateLabel}>Day</Text>
-                <TextInput
-                  style={styles.dateInput}
+                <StyledInput
+                  ref={dayRef}
+                  label="Day"
                   value={birthDay}
-                  onChangeText={setBirthDay}
+                  onChangeText={handleDayChange}
                   placeholder="DD"
-                  placeholderTextColor={Colors.textLight}
                   keyboardType="number-pad"
                   maxLength={2}
+                  returnKeyType="next"
+                  style={styles.dateInput}
                 />
               </View>
 
               <View style={[styles.dateField, { flex: 1.5 }]}>
-                <Text style={styles.dateLabel}>Year</Text>
-                <TextInput
-                  style={styles.dateInput}
+                <StyledInput
+                  ref={yearRef}
+                  label="Year"
                   value={birthYear}
                   onChangeText={setBirthYear}
                   placeholder="YYYY"
-                  placeholderTextColor={Colors.textLight}
                   keyboardType="number-pad"
                   maxLength={4}
+                  returnKeyType="done"
+                  style={styles.dateInput}
                 />
               </View>
             </View>
 
-            {error ? (
-              <Text style={styles.error}>{error}</Text>
-            ) : null}
+            {error ? <Text style={styles.error}>{error}</Text> : null}
 
             <Button
               title="Let's Get Started ✨"
@@ -221,23 +242,11 @@ const styles = StyleSheet.create({
     shadowRadius: 12,
     elevation: 3,
   },
-  label: {
+  dateHeading: {
     fontFamily: FontFamily.semiBold,
     fontSize: FontSize.md,
     color: Colors.text,
     marginBottom: Spacing.sm,
-  },
-  input: {
-    fontFamily: FontFamily.regular,
-    fontSize: FontSize.lg,
-    color: Colors.text,
-    backgroundColor: Colors.background,
-    borderRadius: BorderRadius.md,
-    borderWidth: 1.5,
-    borderColor: Colors.border,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.md - 2,
-    ...(Platform.OS === 'web' ? { outlineStyle: 'none' as any } : {}),
   },
   dateRow: {
     flexDirection: 'row',
@@ -246,24 +255,8 @@ const styles = StyleSheet.create({
   dateField: {
     flex: 1,
   },
-  dateLabel: {
-    fontFamily: FontFamily.regular,
-    fontSize: FontSize.sm,
-    color: Colors.textLight,
-    marginBottom: Spacing.xs,
-  },
   dateInput: {
-    fontFamily: FontFamily.regular,
-    fontSize: FontSize.lg,
-    color: Colors.text,
-    backgroundColor: Colors.background,
-    borderRadius: BorderRadius.md,
-    borderWidth: 1.5,
-    borderColor: Colors.border,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.md - 2,
     textAlign: 'center',
-    ...(Platform.OS === 'web' ? { outlineStyle: 'none' as any } : {}),
   },
   error: {
     fontFamily: FontFamily.regular,
