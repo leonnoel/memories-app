@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -23,9 +23,10 @@ interface MemoryViewerProps {
 }
 
 export function MemoryViewer({ memory, visible, onClose, onDelete }: MemoryViewerProps) {
-  const { width: windowWidth, height: windowHeight } = useWindowDimensions();
+  const { width: windowWidth } = useWindowDimensions();
   const imageWidth = Math.min(windowWidth - Spacing.lg * 2, MAX_CONTENT_WIDTH);
   const imageHeight = imageWidth * (5 / 4); // 4:5 aspect ratio
+  const [confirmDelete, setConfirmDelete] = useState(false);
 
   if (!memory) return null;
 
@@ -36,12 +37,33 @@ export function MemoryViewer({ memory, visible, onClose, onDelete }: MemoryViewe
     year: 'numeric',
   });
 
+  const handleClose = () => {
+    setConfirmDelete(false);
+    onClose();
+  };
+
+  const handleDeletePress = () => {
+    setConfirmDelete(true);
+  };
+
+  const handleDeleteConfirm = () => {
+    if (onDelete && memory) {
+      onDelete(memory.id);
+    }
+    setConfirmDelete(false);
+    onClose();
+  };
+
+  const handleDeleteCancel = () => {
+    setConfirmDelete(false);
+  };
+
   return (
     <Modal
       visible={visible}
       transparent
       animationType="fade"
-      onRequestClose={onClose}
+      onRequestClose={handleClose}
     >
       <View style={styles.backdrop}>
         <ScrollView
@@ -52,7 +74,7 @@ export function MemoryViewer({ memory, visible, onClose, onDelete }: MemoryViewe
             {/* Close button */}
             <TouchableOpacity
               style={styles.closeButton}
-              onPress={onClose}
+              onPress={handleClose}
               accessibilityLabel="Close"
             >
               <Text style={styles.closeText}>✕</Text>
@@ -71,28 +93,49 @@ export function MemoryViewer({ memory, visible, onClose, onDelete }: MemoryViewe
             <Text style={styles.ageLabel}>{memory.ageLabel}</Text>
             <Text style={styles.dateLabel}>{dateStr}</Text>
 
-            {/* Actions */}
-            <View style={styles.actions}>
-              <Button
-                title="Close"
-                onPress={onClose}
-                variant="outline"
-                size="md"
-                style={{ flex: 1 }}
-              />
-              {onDelete && (
+            {/* Delete confirmation */}
+            {confirmDelete ? (
+              <View style={styles.confirmBox}>
+                <Text style={styles.confirmText}>
+                  Delete this memory? This can't be undone.
+                </Text>
+                <View style={styles.confirmActions}>
+                  <Button
+                    title="Cancel"
+                    onPress={handleDeleteCancel}
+                    variant="outline"
+                    size="sm"
+                    style={{ flex: 1 }}
+                  />
+                  <Button
+                    title="Yes, Delete"
+                    onPress={handleDeleteConfirm}
+                    variant="primary"
+                    size="sm"
+                    style={{ flex: 1, backgroundColor: Colors.danger }}
+                  />
+                </View>
+              </View>
+            ) : (
+              <View style={styles.actions}>
                 <Button
-                  title="Delete"
-                  onPress={() => {
-                    onDelete(memory.id);
-                    onClose();
-                  }}
-                  variant="ghost"
+                  title="Close"
+                  onPress={handleClose}
+                  variant="outline"
                   size="md"
                   style={{ flex: 1 }}
                 />
-              )}
-            </View>
+                {onDelete && (
+                  <Button
+                    title="Delete"
+                    onPress={handleDeletePress}
+                    variant="ghost"
+                    size="md"
+                    style={{ flex: 1 }}
+                  />
+                )}
+              </View>
+            )}
           </View>
         </ScrollView>
       </View>
@@ -170,6 +213,26 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: Spacing.md,
     marginTop: Spacing.lg,
+    width: '100%',
+  },
+  confirmBox: {
+    marginTop: Spacing.lg,
+    width: '100%',
+    backgroundColor: Colors.surface,
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.md,
+    alignItems: 'center',
+  },
+  confirmText: {
+    fontFamily: FontFamily.semiBold,
+    fontSize: FontSize.md,
+    color: Colors.danger,
+    textAlign: 'center',
+    marginBottom: Spacing.md,
+  },
+  confirmActions: {
+    flexDirection: 'row',
+    gap: Spacing.md,
     width: '100%',
   },
 });
