@@ -1,3 +1,5 @@
+import { Platform, ViewStyle } from 'react-native';
+
 export const Spacing = {
   xs: 4,
   sm: 8,
@@ -16,28 +18,31 @@ export const BorderRadius = {
   full: 9999,
 } as const;
 
+// Cross-platform shadows: uses boxShadow on web, shadow* props on native
+function makeShadow(
+  offsetY: number,
+  blur: number,
+  opacity: number,
+  elevation: number
+): ViewStyle {
+  if (Platform.OS === 'web') {
+    return {
+      boxShadow: `0px ${offsetY}px ${blur}px rgba(44, 62, 80, ${opacity})`,
+    } as any;
+  }
+  return {
+    shadowColor: '#2C3E50',
+    shadowOffset: { width: 0, height: offsetY },
+    shadowOpacity: opacity,
+    shadowRadius: blur,
+    elevation,
+  };
+}
+
 export const Shadow = {
-  sm: {
-    shadowColor: '#2C3E50',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
-  },
-  md: {
-    shadowColor: '#2C3E50',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 3,
-  },
-  lg: {
-    shadowColor: '#2C3E50',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.12,
-    shadowRadius: 16,
-    elevation: 6,
-  },
+  sm: makeShadow(1, 2, 0.05, 1),
+  md: makeShadow(2, 8, 0.08, 3),
+  lg: makeShadow(4, 16, 0.12, 6),
 } as const;
 
 // Frame dimensions for the composed image

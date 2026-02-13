@@ -11,7 +11,7 @@ import {
 import { useRouter } from 'expo-router';
 import { Colors } from '@/constants/colors';
 import { FontFamily, FontSize } from '@/constants/typography';
-import { Spacing, BorderRadius, MAX_CONTENT_WIDTH } from '@/constants/layout';
+import { Spacing, BorderRadius, Shadow, MAX_CONTENT_WIDTH } from '@/constants/layout';
 import { Button } from '@/components/ui/Button';
 import { StyledInput } from '@/components/ui/StyledInput';
 import { useChildInfo } from '@/hooks/useChildInfo';
@@ -231,11 +231,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.surface,
     borderRadius: BorderRadius.xl,
     padding: Spacing.lg,
-    shadowColor: '#2C3E50',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 12,
-    elevation: 3,
+    ...Shadow.md,
   },
   dateHeading: {
     fontFamily: FontFamily.semiBold,

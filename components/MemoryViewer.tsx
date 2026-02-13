@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { Colors } from '@/constants/colors';
 import { FontFamily, FontSize } from '@/constants/typography';
-import { Spacing, BorderRadius, MAX_CONTENT_WIDTH } from '@/constants/layout';
+import { Spacing, BorderRadius, Shadow, MAX_CONTENT_WIDTH } from '@/constants/layout';
 import { Button } from '@/components/ui/Button';
 import { MemoryEntry } from '@/utils/storage';
 
@@ -170,11 +170,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: Spacing.md,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 4,
-    elevation: 3,
+    ...Shadow.md,
   },
   closeText: {
     fontSize: 18,
@@ -185,11 +181,7 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.lg,
     overflow: 'hidden',
     backgroundColor: Colors.surface,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
-    elevation: 6,
+    ...Shadow.lg,
   },
   image: {
     width: '100%',
