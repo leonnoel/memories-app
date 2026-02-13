@@ -15,6 +15,7 @@ import { Spacing, BorderRadius, Shadow, MAX_CONTENT_WIDTH } from '@/constants/la
 import { Button } from '@/components/ui/Button';
 import { StyledInput } from '@/components/ui/StyledInput';
 import { saveChildInfo } from '@/utils/storage';
+import { validateBirthday } from '@/utils/validation';
 
 export default function OnboardingScreen() {
   const router = useRouter();
@@ -39,36 +40,9 @@ export default function OnboardingScreen() {
       return;
     }
 
-    const month = parseInt(birthMonth, 10);
-    const year = parseInt(birthYear, 10);
-    const day = parseInt(birthDay, 10);
-    const now = new Date();
-
-    if (!month || month < 1 || month > 12) {
-      setError('Please enter a valid month (1-12)');
-      return;
-    }
-
-    if (!year || year < 2000 || year > now.getFullYear()) {
-      setError(`Please enter a valid year (2000-${now.getFullYear()})`);
-      return;
-    }
-
-    if (!day || day < 1 || day > 31) {
-      setError('Please enter a valid day (1-31)');
-      return;
-    }
-
-    const birthday = new Date(year, month - 1, day);
-    
-    // Verify the date didn't overflow (e.g., Feb 30 -> March 2)
-    if (birthday.getMonth() !== month - 1 || birthday.getDate() !== day) {
-      setError('Please enter a valid date for the selected month');
-      return;
-    }
-    
-    if (birthday > now) {
-      setError("Birthday can't be in the future");
+    const validation = validateBirthday(birthMonth, birthDay, birthYear);
+    if (!validation.valid) {
+      setError(validation.error!);
       return;
     }
 
@@ -76,7 +50,7 @@ export default function OnboardingScreen() {
     try {
       await saveChildInfo({
         name: trimmedName,
-        birthday: birthday.toISOString(),
+        birthday: validation.birthday!.toISOString(),
       });
       router.replace('/home');
     } catch {

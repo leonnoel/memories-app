@@ -16,6 +16,7 @@ import { Button } from '@/components/ui/Button';
 import { StyledInput } from '@/components/ui/StyledInput';
 import { useChildInfo } from '@/hooks/useChildInfo';
 import { clearAllData, saveChildInfo } from '@/utils/storage';
+import { validateBirthday } from '@/utils/validation';
 
 export default function SettingsScreen() {
   const router = useRouter();
@@ -42,38 +43,14 @@ export default function SettingsScreen() {
 
   const handleSave = async () => {
     const trimmedName = name.trim();
-    if (!trimmedName) return;
-
-    const month = parseInt(birthMonth, 10);
-    const year = parseInt(birthYear, 10);
-    const day = parseInt(birthDay, 10);
-    const now = new Date();
-
-    if (!month || month < 1 || month > 12) {
-      setMessage('Invalid month (1-12)');
+    if (!trimmedName) {
+      setMessage("Please enter your child's name");
       return;
     }
 
-    if (!year || year < 2000 || year > now.getFullYear()) {
-      setMessage(`Invalid year (2000-${now.getFullYear()})`);
-      return;
-    }
-
-    if (!day || day < 1 || day > 31) {
-      setMessage('Invalid day (1-31)');
-      return;
-    }
-
-    const birthday = new Date(year, month - 1, day);
-    
-    // Verify the date didn't overflow (e.g., Feb 30 -> March 2)
-    if (birthday.getMonth() !== month - 1 || birthday.getDate() !== day) {
-      setMessage('Invalid date for selected month');
-      return;
-    }
-    
-    if (birthday > now) {
-      setMessage("Birthday can't be in the future");
+    const validation = validateBirthday(birthMonth, birthDay, birthYear);
+    if (!validation.valid) {
+      setMessage(validation.error!);
       return;
     }
 
@@ -81,7 +58,7 @@ export default function SettingsScreen() {
     try {
       await saveChildInfo({
         name: trimmedName,
-        birthday: birthday.toISOString(),
+        birthday: validation.birthday!.toISOString(),
       });
       await refresh();
       setMessage('Saved!');
@@ -207,7 +184,7 @@ export default function SettingsScreen() {
             <Text
               style={[
                 styles.message,
-                message === 'Error saving' && { color: Colors.danger },
+                message !== 'Saved!' && { color: Colors.danger },
               ]}
             >
               {message}
