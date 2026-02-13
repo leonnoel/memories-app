@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useId } from 'react';
 import Svg, {
   Defs,
   LinearGradient,
@@ -36,22 +36,23 @@ export function MountainFrame({
   width = W,
   height = H,
 }: MountainFrameProps) {
+  const uid = useId().replace(/:/g, '');
   const c = Colors.frames.mountain;
 
   return (
     <Svg width={width} height={height} viewBox={`0 0 ${W} ${H}`}>
       <Defs>
-        <LinearGradient id="mountainSky" x1="0" y1="0" x2="0" y2="1">
+        <LinearGradient id={`msky${uid}`} x1="0" y1="0" x2="0" y2="1">
           <Stop offset="0" stopColor={c.sky} />
           <Stop offset="1" stopColor={c.skyDark} />
         </LinearGradient>
-        <ClipPath id="photoClip">
+        <ClipPath id={`mclip${uid}`}>
           <Circle cx={CX} cy={CY} r={CR} />
         </ClipPath>
       </Defs>
 
       {/* Sky background */}
-      <Rect x="0" y="0" width={W} height={H} fill="url(#mountainSky)" />
+      <Rect x="0" y="0" width={W} height={H} fill={`url(#msky${uid})`} />
 
       {/* Sun */}
       <Circle cx="180" cy="180" r="70" fill={c.sun} opacity={0.9} />
@@ -122,7 +123,7 @@ export function MountainFrame({
           width={CR * 2}
           height={CR * 2}
           href={photoUri}
-          clipPath="url(#photoClip)"
+          clipPath={`url(#mclip${uid})`}
           preserveAspectRatio="xMidYMid slice"
         />
       ) : (
@@ -130,14 +131,7 @@ export function MountainFrame({
       )}
 
       {/* Photo circle outline */}
-      <Circle
-        cx={CX}
-        cy={CY}
-        r={CR}
-        fill="none"
-        stroke={c.cloud}
-        strokeWidth="6"
-      />
+      <Circle cx={CX} cy={CY} r={CR} fill="none" stroke={c.cloud} strokeWidth="6" />
 
       {/* Name text */}
       <SvgText

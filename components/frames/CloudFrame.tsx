@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useId } from 'react';
 import Svg, {
   Defs,
   LinearGradient,
@@ -36,23 +36,24 @@ export function CloudFrame({
   width = W,
   height = H,
 }: CloudFrameProps) {
+  const uid = useId().replace(/:/g, '');
   const c = Colors.frames.cloud;
 
   return (
     <Svg width={width} height={height} viewBox={`0 0 ${W} ${H}`}>
       <Defs>
-        <LinearGradient id="cloudSky" x1="0" y1="0" x2="0" y2="1">
+        <LinearGradient id={`csky${uid}`} x1="0" y1="0" x2="0" y2="1">
           <Stop offset="0" stopColor={c.skyTop} />
           <Stop offset="0.6" stopColor={c.skyBottom} />
           <Stop offset="1" stopColor="#F0E6FF" />
         </LinearGradient>
-        <ClipPath id="photoClip">
+        <ClipPath id={`cclip${uid}`}>
           <Circle cx={CX} cy={CY} r={CR} />
         </ClipPath>
       </Defs>
 
       {/* Gradient sky */}
-      <Rect x="0" y="0" width={W} height={H} fill="url(#cloudSky)" />
+      <Rect x="0" y="0" width={W} height={H} fill={`url(#csky${uid})`} />
 
       {/* Rainbow */}
       <G opacity={0.35}>
@@ -75,7 +76,6 @@ export function CloudFrame({
         <Ellipse cx="140" cy="115" rx="80" ry="40" fill={c.cloud} />
         <Ellipse cx="250" cy="140" rx="90" ry="35" fill={c.cloud} />
       </G>
-
       <G opacity={0.85}>
         <Ellipse cx="800" cy="150" rx="110" ry="48" fill={c.cloud} />
         <Ellipse cx="880" cy="140" rx="90" ry="40" fill={c.cloud} />
@@ -112,14 +112,10 @@ export function CloudFrame({
 
       {/* Twinkling stars */}
       {[
-        { x: 100, y: 250, s: 18 },
-        { x: 300, y: 180, s: 14 },
-        { x: 680, y: 200, s: 16 },
-        { x: 950, y: 260, s: 12 },
-        { x: 480, y: 1000, s: 15 },
-        { x: 120, y: 900, s: 12 },
-        { x: 900, y: 950, s: 14 },
-        { x: 750, y: 1050, s: 10 },
+        { x: 100, y: 250, s: 18 }, { x: 300, y: 180, s: 14 },
+        { x: 680, y: 200, s: 16 }, { x: 950, y: 260, s: 12 },
+        { x: 480, y: 1000, s: 15 }, { x: 120, y: 900, s: 12 },
+        { x: 900, y: 950, s: 14 }, { x: 750, y: 1050, s: 10 },
         { x: 350, y: 1150, s: 16 },
       ].map(({ x, y, s }, i) => (
         <G key={i} opacity={0.6}>
@@ -140,50 +136,21 @@ export function CloudFrame({
       {/* Photo */}
       {photoUri ? (
         <SvgImage
-          x={CX - CR}
-          y={CY - CR}
-          width={CR * 2}
-          height={CR * 2}
-          href={photoUri}
-          clipPath="url(#photoClip)"
-          preserveAspectRatio="xMidYMid slice"
+          x={CX - CR} y={CY - CR} width={CR * 2} height={CR * 2}
+          href={photoUri} clipPath={`url(#cclip${uid})`} preserveAspectRatio="xMidYMid slice"
         />
       ) : (
         <Circle cx={CX} cy={CY} r={CR} fill={c.cloud} opacity={0.4} />
       )}
-
-      <Circle
-        cx={CX}
-        cy={CY}
-        r={CR}
-        fill="none"
-        stroke={c.cloud}
-        strokeWidth="8"
-      />
+      <Circle cx={CX} cy={CY} r={CR} fill="none" stroke={c.cloud} strokeWidth="8" />
 
       {/* Name */}
-      <SvgText
-        x={CX}
-        y={CY - CR - 50}
-        textAnchor="middle"
-        fontFamily="Nunito_700Bold, Nunito, sans-serif"
-        fontSize="72"
-        fontWeight="bold"
-        fill={Colors.surface}
-      >
+      <SvgText x={CX} y={CY - CR - 50} textAnchor="middle" fontFamily="Nunito_700Bold, Nunito, sans-serif" fontSize="72" fontWeight="bold" fill={Colors.surface}>
         {childName}
       </SvgText>
 
       {/* Age */}
-      <SvgText
-        x={CX}
-        y={CY + CR + 80}
-        textAnchor="middle"
-        fontFamily="Nunito_600SemiBold, Nunito, sans-serif"
-        fontSize="56"
-        fontWeight="600"
-        fill={Colors.surface}
-      >
+      <SvgText x={CX} y={CY + CR + 80} textAnchor="middle" fontFamily="Nunito_600SemiBold, Nunito, sans-serif" fontSize="56" fontWeight="600" fill={Colors.surface}>
         {ageText}
       </SvgText>
     </Svg>

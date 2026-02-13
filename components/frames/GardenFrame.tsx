@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useId } from 'react';
 import Svg, {
   Defs,
   LinearGradient,
@@ -36,23 +36,24 @@ export function GardenFrame({
   width = W,
   height = H,
 }: GardenFrameProps) {
+  const uid = useId().replace(/:/g, '');
   const c = Colors.frames.garden;
 
   return (
     <Svg width={width} height={height} viewBox={`0 0 ${W} ${H}`}>
       <Defs>
-        <LinearGradient id="gardenSky" x1="0" y1="0" x2="0" y2="1">
+        <LinearGradient id={`gsky${uid}`} x1="0" y1="0" x2="0" y2="1">
           <Stop offset="0" stopColor={c.sky} />
           <Stop offset="0.6" stopColor="#E8F5E9" />
           <Stop offset="1" stopColor={c.grass} />
         </LinearGradient>
-        <ClipPath id="photoClip">
+        <ClipPath id={`gclip${uid}`}>
           <Circle cx={CX} cy={CY} r={CR} />
         </ClipPath>
       </Defs>
 
       {/* Sky */}
-      <Rect x="0" y="0" width={W} height={H} fill="url(#gardenSky)" />
+      <Rect x="0" y="0" width={W} height={H} fill={`url(#gsky${uid})`} />
 
       {/* Sun */}
       <Circle cx="900" cy="120" r="65" fill={Colors.accent} opacity={0.8} />
@@ -70,28 +71,14 @@ export function GardenFrame({
       </G>
 
       {/* Grass ground */}
-      <Path
-        d="M0,1000 Q270,970 540,990 Q810,1010 1080,980 L1080,1350 L0,1350 Z"
-        fill={c.grass}
-      />
-      <Path
-        d="M0,1040 Q270,1020 540,1030 Q810,1050 1080,1020 L1080,1350 L0,1350 Z"
-        fill={c.grassDark}
-        opacity={0.5}
-      />
+      <Path d="M0,1000 Q270,970 540,990 Q810,1010 1080,980 L1080,1350 L0,1350 Z" fill={c.grass} />
+      <Path d="M0,1040 Q270,1020 540,1030 Q810,1050 1080,1020 L1080,1350 L0,1350 Z" fill={c.grassDark} opacity={0.5} />
 
       {/* Grass blades */}
       {Array.from({ length: 20 }).map((_, i) => {
         const x = 50 + i * 52;
         return (
-          <Path
-            key={`grass-${i}`}
-            d={`M${x},1020 Q${x - 8},990 ${x + 5},970`}
-            stroke={c.grassDark}
-            strokeWidth="3"
-            fill="none"
-            opacity={0.4}
-          />
+          <Path key={`grass-${i}`} d={`M${x},1020 Q${x - 8},990 ${x + 5},970`} stroke={c.grassDark} strokeWidth="3" fill="none" opacity={0.4} />
         );
       })}
 
@@ -107,38 +94,14 @@ export function GardenFrame({
         { x: 1000, y: 1085, color: c.flower2, s: 0.9 },
       ].map(({ x, y, color, s }, i) => (
         <G key={`flower-${i}`}>
-          {/* Stem */}
-          <Path
-            d={`M${x},${y} L${x},${y + 50 * s}`}
-            stroke={c.grassDark}
-            strokeWidth="3"
-          />
-          {/* Leaf */}
-          <Ellipse
-            cx={x + 10 * s}
-            cy={y + 25 * s}
-            rx={8 * s}
-            ry={4 * s}
-            fill={c.grass}
-            transform={`rotate(30 ${x + 10 * s} ${y + 25 * s})`}
-          />
-          {/* Petals */}
+          <Path d={`M${x},${y} L${x},${y + 50 * s}`} stroke={c.grassDark} strokeWidth="3" />
+          <Ellipse cx={x + 10 * s} cy={y + 25 * s} rx={8 * s} ry={4 * s} fill={c.grass} transform={`rotate(30 ${x + 10 * s} ${y + 25 * s})`} />
           {[0, 60, 120, 180, 240, 300].map((angle, j) => {
             const rad = (angle * Math.PI) / 180;
             const px = x + Math.cos(rad) * 14 * s;
             const py = y + Math.sin(rad) * 14 * s;
-            return (
-              <Circle
-                key={j}
-                cx={px}
-                cy={py}
-                r={10 * s}
-                fill={color}
-                opacity={0.8}
-              />
-            );
+            return <Circle key={j} cx={px} cy={py} r={10 * s} fill={color} opacity={0.8} />;
           })}
-          {/* Center */}
           <Circle cx={x} cy={y} r={7 * s} fill={Colors.accent} />
         </G>
       ))}
@@ -150,35 +113,16 @@ export function GardenFrame({
         { x: 200, y: 900, rot: -10 },
       ].map(({ x, y, rot }, i) => (
         <G key={`butterfly-${i}`} transform={`translate(${x}, ${y}) rotate(${rot})`}>
-          <Path
-            d="M0,0 Q-20,-15 -15,-30 Q-5,-20 0,-5 Z"
-            fill={c.butterfly}
-            opacity={0.7}
-          />
-          <Path
-            d="M0,0 Q20,-15 15,-30 Q5,-20 0,-5 Z"
-            fill={c.butterfly}
-            opacity={0.7}
-          />
-          <Path
-            d="M0,0 Q-15,10 -12,25 Q-3,15 0,5 Z"
-            fill={c.butterfly}
-            opacity={0.5}
-          />
-          <Path
-            d="M0,0 Q15,10 12,25 Q3,15 0,5 Z"
-            fill={c.butterfly}
-            opacity={0.5}
-          />
+          <Path d="M0,0 Q-20,-15 -15,-30 Q-5,-20 0,-5 Z" fill={c.butterfly} opacity={0.7} />
+          <Path d="M0,0 Q20,-15 15,-30 Q5,-20 0,-5 Z" fill={c.butterfly} opacity={0.7} />
+          <Path d="M0,0 Q-15,10 -12,25 Q-3,15 0,5 Z" fill={c.butterfly} opacity={0.5} />
+          <Path d="M0,0 Q15,10 12,25 Q3,15 0,5 Z" fill={c.butterfly} opacity={0.5} />
           <Path d="M0,-5 L0,10" stroke="#666" strokeWidth="1.5" />
         </G>
       ))}
 
       {/* Bees */}
-      {[
-        { x: 800, y: 300 },
-        { x: 350, y: 850 },
-      ].map(({ x, y }, i) => (
+      {[{ x: 800, y: 300 }, { x: 350, y: 850 }].map(({ x, y }, i) => (
         <G key={`bee-${i}`}>
           <Ellipse cx={x} cy={y} rx="12" ry="9" fill={c.bee} />
           <Path d={`M${x - 4},${y - 3} L${x + 4},${y - 3}`} stroke="#333" strokeWidth="2" />
@@ -213,43 +157,21 @@ export function GardenFrame({
       {/* Photo */}
       {photoUri ? (
         <SvgImage
-          x={CX - CR}
-          y={CY - CR}
-          width={CR * 2}
-          height={CR * 2}
-          href={photoUri}
-          clipPath="url(#photoClip)"
-          preserveAspectRatio="xMidYMid slice"
+          x={CX - CR} y={CY - CR} width={CR * 2} height={CR * 2}
+          href={photoUri} clipPath={`url(#gclip${uid})`} preserveAspectRatio="xMidYMid slice"
         />
       ) : (
         <Circle cx={CX} cy={CY} r={CR} fill={Colors.primaryLight} opacity={0.4} />
       )}
-
       <Circle cx={CX} cy={CY} r={CR} fill="none" stroke="white" strokeWidth="8" />
 
       {/* Name */}
-      <SvgText
-        x={CX}
-        y={CY - CR - 50}
-        textAnchor="middle"
-        fontFamily="Nunito_700Bold, Nunito, sans-serif"
-        fontSize="72"
-        fontWeight="bold"
-        fill={Colors.text}
-      >
+      <SvgText x={CX} y={CY - CR - 50} textAnchor="middle" fontFamily="Nunito_700Bold, Nunito, sans-serif" fontSize="72" fontWeight="bold" fill={Colors.text}>
         {childName}
       </SvgText>
 
       {/* Age */}
-      <SvgText
-        x={CX}
-        y={CY + CR + 80}
-        textAnchor="middle"
-        fontFamily="Nunito_600SemiBold, Nunito, sans-serif"
-        fontSize="56"
-        fontWeight="600"
-        fill={Colors.text}
-      >
+      <SvgText x={CX} y={CY + CR + 80} textAnchor="middle" fontFamily="Nunito_600SemiBold, Nunito, sans-serif" fontSize="56" fontWeight="600" fill={Colors.text}>
         {ageText}
       </SvgText>
     </Svg>
